@@ -4,16 +4,19 @@ import com.sevis.inventoryservice.dto.request.InventoryRequest;
 import com.sevis.inventoryservice.dto.response.InventoryResponse;
 import com.sevis.inventoryservice.model.InventoryItem;
 
+import java.time.LocalDate;
+
 public class InventoryMapper {
 
     private InventoryMapper() {}
 
     public static InventoryItem toEntity(InventoryRequest request) {
         InventoryItem item = new InventoryItem();
-        item.setName(request.getName());
         item.setSku(request.getSku());
+        item.setName(request.getName());
         item.setQuantity(request.getQuantity());
         item.setPrice(request.getPrice());
+        item.setPurchasedAt(LocalDate.now());
         return item;
     }
 
