@@ -48,7 +48,7 @@ public class CsvImportService {
 
             // Skip rows without a valid part number or description
             if (partNumber.isEmpty() || description.isEmpty()
-                    || !partNumber.matches("[A-Za-z0-9\\-/]+")) {
+                    || !partNumber.matches("[A-Za-z0-9\\-/._: ()]+")) {
                 skipped++;
                 continue;
             }

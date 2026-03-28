@@ -45,6 +45,10 @@ public class PartController {
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body("No file provided");
         }
+        String filename = file.getOriginalFilename() != null ? file.getOriginalFilename().toLowerCase() : "";
+        if (!filename.endsWith(".csv") && !filename.endsWith(".tsv") && !filename.endsWith(".txt")) {
+            return ResponseEntity.badRequest().body("Only CSV/TSV files are accepted");
+        }
         try {
             CsvImportService.ImportResult result = csvImportService.importCsv(file);
             return ResponseEntity.ok(result);
