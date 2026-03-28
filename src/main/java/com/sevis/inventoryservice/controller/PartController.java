@@ -1,5 +1,6 @@
 package com.sevis.inventoryservice.controller;
 
+import com.sevis.inventoryservice.dto.request.PartBatchRequest;
 import com.sevis.inventoryservice.dto.response.PartResponse;
 import com.sevis.inventoryservice.service.CsvImportService;
 import com.sevis.inventoryservice.service.PartService;
@@ -8,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/parts")
@@ -56,5 +59,20 @@ public class PartController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Import failed: " + e.getMessage());
         }
+    }
+
+    @PostMapping("/batch")
+    public ResponseEntity<?> importBatch(
+            @RequestBody List<PartBatchRequest> rows,
+            @RequestHeader(value = "X-User-Role", defaultValue = "") String userRole) {
+
+        if (!"ADMIN".equals(userRole)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Only ADMIN users can import parts");
+        }
+        if (rows == null || rows.isEmpty()) {
+            return ResponseEntity.badRequest().body("Empty batch");
+        }
+        CsvImportService.ImportResult result = csvImportService.importBatch(rows);
+        return ResponseEntity.ok(result);
     }
 }

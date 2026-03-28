@@ -1,9 +1,11 @@
 package com.sevis.inventoryservice.service;
 
+import com.sevis.inventoryservice.dto.request.PartBatchRequest;
 import com.sevis.inventoryservice.model.Part;
 import com.sevis.inventoryservice.repository.PartRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedReader;
@@ -133,6 +135,40 @@ public class CsvImportService {
         } catch (NumberFormatException e) {
             return 0.0;
         }
+    }
+
+    @Transactional
+    public ImportResult importBatch(List<PartBatchRequest> rows) {
+        List<String> partNumbers = rows.stream()
+                .map(PartBatchRequest::getPartNumber)
+                .collect(Collectors.toList());
+
+        Map<String, Part> existing = partRepository.findAllByPartNumberIn(partNumbers)
+                .stream()
+                .collect(Collectors.toMap(Part::getPartNumber, Function.identity()));
+
+        int inserted = 0, updated = 0;
+        List<Part> toSave = new ArrayList<>();
+
+        for (PartBatchRequest row : rows) {
+            Part part = existing.getOrDefault(row.getPartNumber(), new Part());
+            boolean isNew = part.getId() == null;
+
+            part.setPartNumber(row.getPartNumber());
+            part.setDescription(row.getDescription());
+            part.setMrpPrice(row.getMrpPrice());
+            part.setPurchasePrice(row.getPurchasePrice());
+            part.setUom(row.getUom() != null ? row.getUom() : "");
+            part.setProductGroup(row.getProductGroup() != null ? row.getProductGroup() : "");
+            part.setHsnCode(row.getHsnCode() != null ? row.getHsnCode() : "");
+            part.setTaxSlab(row.getTaxSlab() != null ? row.getTaxSlab() : "");
+
+            toSave.add(part);
+            if (isNew) inserted++; else updated++;
+        }
+
+        partRepository.saveAll(toSave);
+        return new ImportResult(inserted, updated, 0, "Batch saved");
     }
 
     public record ImportResult(int inserted, int updated, int skipped, String message) {}
