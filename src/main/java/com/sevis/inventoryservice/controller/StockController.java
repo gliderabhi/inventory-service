@@ -1,6 +1,7 @@
 package com.sevis.inventoryservice.controller;
 
 import com.sevis.inventoryservice.dto.request.StockRequest;
+import com.sevis.inventoryservice.dto.response.StockImportResult;
 import com.sevis.inventoryservice.dto.response.StockResponse;
 import com.sevis.inventoryservice.service.StockService;
 import jakarta.validation.Valid;
@@ -62,6 +63,19 @@ public class StockController {
         Long resolvedCompanyId = resolveCompanyId(userId, role, companyId);
         stockService.delete(resolvedCompanyId, partNumber);
         return ResponseEntity.noContent().build();
+    }
+
+    /** Upload a Purchase Order xlsx (raw bytes) to increment stock quantities.
+     *  Part # validated against catalogue; unrecognised parts are skipped. */
+    @PostMapping("/update-inventory")
+    public StockImportResult importXlsx(
+            @RequestBody byte[] fileBytes,
+            @RequestHeader(value = "X-User-Id",   defaultValue = "0") Long userId,
+            @RequestHeader(value = "X-User-Role", defaultValue = "") String role,
+            @RequestParam(required = false) Long companyId) {
+
+        Long resolvedCompanyId = resolveCompanyId(userId, role, companyId);
+        return stockService.importXlsx(fileBytes, resolvedCompanyId);
     }
 
     /** ADMIN can target any companyId via query param; others always use their own userId. */
