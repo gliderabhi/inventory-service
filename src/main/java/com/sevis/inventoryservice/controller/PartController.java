@@ -37,6 +37,13 @@ public class PartController {
         return partService.getByPartNumber(partNumber);
     }
 
+    @GetMapping("/search")
+    public List<PartResponse> search(
+            @RequestParam String q,
+            @RequestParam(defaultValue = "20") int size) {
+        return partService.search(q, size);
+    }
+
     @PostMapping("/import")
     public ResponseEntity<?> importCsv(
             @RequestParam("file") MultipartFile file,

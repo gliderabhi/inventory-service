@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class PartService {
@@ -32,5 +34,12 @@ public class PartService {
         return partRepository.findByPartNumber(partNumber)
                 .map(PartResponse::new)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Part not found: " + partNumber));
+    }
+
+    public List<PartResponse> search(String q, int size) {
+        return partRepository
+                .findByPartNumberContainingIgnoreCaseOrDescriptionContainingIgnoreCase(
+                        q, q, PageRequest.of(0, size, Sort.by("partNumber")))
+                .stream().map(PartResponse::new).toList();
     }
 }
