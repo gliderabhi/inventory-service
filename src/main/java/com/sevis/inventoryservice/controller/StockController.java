@@ -79,6 +79,26 @@ public class StockController {
         return stockService.importXlsx(fileBytes, resolvedCompanyId);
     }
 
+    @GetMapping("/value")
+    public ResponseEntity<Double> stockValue(
+            @RequestHeader(value = "X-User-Id",   defaultValue = "0") Long userId,
+            @RequestHeader(value = "X-User-Role", defaultValue = "") String role,
+            @RequestParam(required = false) Long companyId) {
+        Long resolvedCompanyId = resolveCompanyId(userId, role, companyId);
+        return ResponseEntity.ok(stockService.getTotalStockValue(resolvedCompanyId));
+    }
+
+    @PostMapping("/restore")
+    public ResponseEntity<Void> restoreBatch(
+            @RequestBody List<StockDeductRequest> requests,
+            @RequestHeader(value = "X-User-Id", defaultValue = "0") Long userId,
+            @RequestHeader(value = "X-User-Role", defaultValue = "") String role,
+            @RequestParam(required = false) Long companyId) {
+        Long resolvedCompanyId = resolveCompanyId(userId, role, companyId);
+        stockService.restoreBatch(resolvedCompanyId, requests);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/deduct")
     public ResponseEntity<Void> deductBatch(
             @RequestBody List<StockDeductRequest> requests,

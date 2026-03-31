@@ -89,6 +89,22 @@ public class StockService {
         }
     }
 
+    @Transactional
+    public void restoreBatch(Long companyId, List<StockDeductRequest> requests) {
+        for (StockDeductRequest req : requests) {
+            if (req.getPartNumber() == null || req.getQuantity() <= 0) continue;
+            stockRepository.findByCompanyIdAndPartNumber(companyId, req.getPartNumber())
+                    .ifPresent(item -> {
+                        item.setQuantity(item.getQuantity() + req.getQuantity());
+                        stockRepository.save(item);
+                    });
+        }
+    }
+
+    public double getTotalStockValue(Long companyId) {
+        return stockRepository.sumStockValueByCompanyId(companyId);
+    }
+
     // ── XLSX PO Import ────────────────────────────────────────────────────────
     // XLSX columns (0-indexed): 7 = Received Qty, 10 = Part #
 
