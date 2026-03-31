@@ -1,5 +1,6 @@
 package com.sevis.inventoryservice.controller;
 
+import com.sevis.inventoryservice.dto.request.StockDeductRequest;
 import com.sevis.inventoryservice.dto.request.StockRequest;
 import com.sevis.inventoryservice.dto.response.StockImportResult;
 import com.sevis.inventoryservice.dto.response.StockResponse;
@@ -76,6 +77,18 @@ public class StockController {
 
         Long resolvedCompanyId = resolveCompanyId(userId, role, companyId);
         return stockService.importXlsx(fileBytes, resolvedCompanyId);
+    }
+
+    @PostMapping("/deduct")
+    public ResponseEntity<Void> deductBatch(
+            @RequestBody List<StockDeductRequest> requests,
+            @RequestHeader(value = "X-User-Id", defaultValue = "0") Long userId,
+            @RequestHeader(value = "X-User-Role", defaultValue = "") String role,
+            @RequestParam(required = false) Long companyId) {
+
+        Long resolvedCompanyId = resolveCompanyId(userId, role, companyId);
+        stockService.deductBatch(resolvedCompanyId, requests);
+        return ResponseEntity.ok().build();
     }
 
     /** ADMIN can target any companyId via query param; others always use their own userId. */

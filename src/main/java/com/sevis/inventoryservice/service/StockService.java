@@ -1,5 +1,6 @@
 package com.sevis.inventoryservice.service;
 
+import com.sevis.inventoryservice.dto.request.StockDeductRequest;
 import com.sevis.inventoryservice.dto.request.StockRequest;
 import com.sevis.inventoryservice.dto.response.StockImportResult;
 import com.sevis.inventoryservice.dto.response.StockResponse;
@@ -72,6 +73,20 @@ public class StockService {
     @Transactional
     public void delete(Long companyId, String partNumber) {
         stockRepository.deleteByCompanyIdAndPartNumber(companyId, partNumber);
+    }
+
+    @Transactional
+    public void deductBatch(Long companyId, List<StockDeductRequest> requests) {
+        for (StockDeductRequest req : requests) {
+            if (req.getPartNumber() == null || req.getQuantity() <= 0) continue;
+            stockRepository.findByCompanyIdAndPartNumber(companyId, req.getPartNumber())
+                    .ifPresent(item -> {
+                        int newQty = Math.max(0, item.getQuantity() - req.getQuantity());
+                        item.setQuantity(newQty);
+                        stockRepository.save(item);
+                    });
+            // If part not in stock → silently skip (per business rule)
+        }
     }
 
     // ── XLSX PO Import ────────────────────────────────────────────────────────
