@@ -81,8 +81,7 @@ public class StockService {
             if (req.getPartNumber() == null || req.getQuantity() <= 0) continue;
             stockRepository.findByCompanyIdAndPartNumber(companyId, req.getPartNumber())
                     .ifPresent(item -> {
-                        int newQty = Math.max(0, item.getQuantity() - req.getQuantity());
-                        item.setQuantity(newQty);
+                        item.setQuantity(item.getQuantity() - req.getQuantity());
                         stockRepository.save(item);
                     });
             // If part not in stock → silently skip (per business rule)
